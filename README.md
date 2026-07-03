@@ -17,7 +17,7 @@ AI Conversation Studio uses a **3-tier architecture** designed for simplicity an
 | Layer | Technology | Role |
 |---|---|---|
 | **Frontend** | Streamlit | Multi-page app with dark theme, interactive Plotly charts, and real-time API integration |
-| **Backend** | FastAPI | REST API with auto-generated OpenAPI docs, CRUD operations, mock LLM engine, and evaluation pipeline |
+| **Backend** | FastAPI | REST API with auto-generated OpenAPI docs, CRUD operations, Groq-backed chat with mock fallback, and evaluation pipeline |
 | **Database** | SQLite via SQLAlchemy ORM | Zero-configuration persistent storage with full relational schema |
 | **Deployment** | Docker Compose | Single-command setup with health checks, volume mounts, and service orchestration |
 
@@ -74,8 +74,11 @@ Once running, access:
 ```bash
 cd backend
 pip install -r requirements.txt
+copy ..\.env .env
 uvicorn app.main:app --reload --port 8000
 ```
+
+The backend loads environment variables from the project root `.env` file at startup, so keep `GROQ_API_KEY` and `GROQ_MODEL` there when running Uvicorn directly.
 
 **Frontend** (in a separate terminal):
 ```bash
@@ -226,7 +229,7 @@ ai-conversation-studio/
 
 ## Technical Decisions & Assumptions
 
-- **Mock LLM**: Responses are generated using rule-based logic (keyword matching + template responses). No external API keys required — the system is fully self-contained.
+- **Groq Integration**: The backend uses Groq when `GROQ_API_KEY` is set and falls back to `MockLLM` when the key is missing or the request fails.
 - **SQLite**: Chosen for zero-configuration setup and portability. The schema is designed to be compatible with PostgreSQL for production migration.
 - **Explainable Evaluation**: NLP heuristics (token overlap, pattern matching) are used intentionally for transparency. Every score can be traced back to specific text evidence, unlike black-box ML models.
 - **CORS**: Enabled with permissive settings for development convenience. Should be restricted to specific origins in production.
